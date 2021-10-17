@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"path"
 	"strings"
@@ -53,17 +52,17 @@ func (c *ClusterConfig) Load(cfgFile string, readFn fs.ReadFn) error {
 }
 
 // Write current config to file
-func (c *ClusterConfig) Write() {
+func (c *ClusterConfig) Write(writeFn fs.WriteFn) error {
 	yamlData, err := yaml.Marshal(c)
-
 	if err != nil {
 		fmt.Printf("Error while Marshaling. %v", err)
 	}
 
-	err = ioutil.WriteFile(c.cfgFile, yamlData, 0644)
+	err = writeFn(c.cfgFile, yamlData, 0644)
 	if err != nil {
-		panic("Unable to write data into the file")
+		return err
 	}
+	return nil
 }
 
 func (c *ClusterConfig) AddCluster() {

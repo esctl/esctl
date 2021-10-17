@@ -2,6 +2,7 @@ package fs
 
 import (
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
 
@@ -9,9 +10,14 @@ import (
 )
 
 type ReadFn func(string) ([]byte, error)
+type WriteFn func(string, []byte, fs.FileMode) error
 
 func Read(file string) ([]byte, error) {
 	return ioutil.ReadFile(file)
+}
+
+func Write(file string, data []byte, perm fs.FileMode) error {
+	return ioutil.WriteFile(file, data, perm)
 }
 
 func HomeDir() string {

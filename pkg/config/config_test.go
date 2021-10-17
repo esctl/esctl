@@ -1,10 +1,12 @@
 package config
 
 import (
+	stdlib_fs "io/fs"
 	"testing"
 
 	"github.com/esctl/esctl/pkg/fs"
 	"github.com/stretchr/testify/assert"
+	yaml "gopkg.in/yaml.v3"
 )
 
 func TestClusterConfig_Load(t *testing.T) {
@@ -13,6 +15,7 @@ func TestClusterConfig_Load(t *testing.T) {
 		Clusters       []Cluster
 		cfgFile        string
 	}
+
 	type args struct {
 		cfgFile string
 		ReadFn  fs.ReadFn
@@ -23,6 +26,7 @@ func TestClusterConfig_Load(t *testing.T) {
 		args   args
 	}{
 		{
+			name: "Should load config from valid yaml file",
 			args: args{
 				cfgFile: "/some/config.yaml",
 				ReadFn: func(s string) ([]byte, error) {
@@ -56,40 +60,37 @@ func TestClusterConfig_Load(t *testing.T) {
 }
 
 func TestClusterConfig_Write(t *testing.T) {
-	type fields struct {
-		CurrentCluster string
-		Clusters       []Cluster
-		cfgFile        string
+	type args struct {
+		write fs.WriteFn
 	}
-	tests := []struct {
-		name   string
-		fields fields
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &ClusterConfig{
-				CurrentCluster: tt.fields.CurrentCluster,
-				Clusters:       tt.fields.Clusters,
-				cfgFile:        tt.fields.cfgFile,
-			}
-			c.Write()
-		})
-	}
-}
 
-func TestClusterConfig_AddCluster(t *testing.T) {
-	type fields struct {
-		CurrentCluster string
-		Clusters       []Cluster
-		cfgFile        string
+	localClusterConfig := ClusterConfig{
+		cfgFile:        "/some/conf.yaml",
+		CurrentCluster: "",
+		Clusters: []Cluster{
+			{
+				Name:  "local",
+				Hosts: []string{"http://node1:1234", "http://node2:1234"},
+			},
+		},
 	}
 	tests := []struct {
 		name   string
-		fields fields
+		fields ClusterConfig
+		args   args
 	}{
-		// TODO: Add test cases.
+		{
+			name:   "should write config to file",
+			fields: localClusterConfig,
+			args: args{
+				write: func(s string, b []byte, fm stdlib_fs.FileMode) error {
+					expected, err := yaml.Marshal(localClusterConfig)
+					assert.Nil(t, err, "Not expecting an error here")
+					assert.Equal(t, expected, b, "config data mismatch")
+					return nil
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -98,7 +99,7 @@ func TestClusterConfig_AddCluster(t *testing.T) {
 				Clusters:       tt.fields.Clusters,
 				cfgFile:        tt.fields.cfgFile,
 			}
-			c.AddCluster()
+			c.Write(tt.args.write)
 		})
 	}
 }

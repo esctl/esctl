@@ -2,8 +2,10 @@ package cluster
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/esctl/esctl/pkg/config"
+	"github.com/esctl/esctl/pkg/fs"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +39,11 @@ func newClusterAddCmd(cfg *config.ClusterConfig) *cobra.Command {
 		Short: "",
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg.AddCluster()
-			cfg.Write()
+			err := cfg.Write(fs.Write)
+
+			if err != nil {
+				log.Fatalf("Error writing config file %v", err)
+			}
 		},
 	}
 	return clusterAddCmd
