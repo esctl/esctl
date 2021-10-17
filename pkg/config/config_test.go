@@ -50,7 +50,8 @@ func TestClusterConfig_Load(t *testing.T) {
 				Clusters:       tt.fields.Clusters,
 				cfgFile:        tt.fields.cfgFile,
 			}
-			c.Load(tt.args.cfgFile, tt.args.ReadFn)
+			err := c.Load(tt.args.cfgFile, tt.args.ReadFn)
+			assert.Nil(t, err, "error not expected")
 			assert.Equal(t, "Test", c.Clusters[0].Name, "Cluster Names do not match")
 			assert.Equal(t, "http://node1:1234", c.Clusters[0].Hosts[0], "Host do not match")
 			assert.Equal(t, "http://node2:1234", c.Clusters[0].Hosts[1], "Host do not match")
@@ -99,7 +100,8 @@ func TestClusterConfig_Write(t *testing.T) {
 				Clusters:       tt.fields.Clusters,
 				cfgFile:        tt.fields.cfgFile,
 			}
-			c.Write(tt.args.write)
+			err := c.Write(tt.args.write)
+			assert.Nil(t, err, "error not expected")
 		})
 	}
 }

@@ -55,7 +55,7 @@ func (c *ClusterConfig) Load(cfgFile string, readFn fs.ReadFn) error {
 func (c *ClusterConfig) Write(writeFn fs.WriteFn) error {
 	yamlData, err := yaml.Marshal(c)
 	if err != nil {
-		fmt.Printf("Error while Marshaling. %v", err)
+		return fmt.Errorf("error while Marshaling %v", err)
 	}
 
 	err = writeFn(c.cfgFile, yamlData, 0644)
