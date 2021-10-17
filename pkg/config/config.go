@@ -16,7 +16,6 @@ type ClusterConfig struct {
 	CurrentCluster string    `yaml:"CurrentCluster"`
 	Clusters       []Cluster `yaml:"Clusters"`
 	cfgFile        string
-	fileUtils      fs.FileUtils
 }
 
 func (cc ClusterConfig) String() string {
@@ -32,24 +31,25 @@ func (c Cluster) String() string {
 	return fmt.Sprintf("Name: %v  Hosts: %v\n", c.Name, c.Hosts)
 }
 
-func (c *ClusterConfig) Load(cfgFile string) {
+func (c *ClusterConfig) Load(cfgFile string, readFn fs.ReadFn) error {
 
 	if cfgFile == "" {
-		cfgFile = path.Join(c.fileUtils.HomeDir(), ".esctl")
+		cfgFile = path.Join(fs.HomeDir(), ".esctl")
 	}
 
-	yamlFile, err := c.fileUtils.Read(cfgFile)
+	yamlFile, err := readFn(cfgFile)
 
 	if err != nil {
-		log.Fatalf("error reading config file %v\n", err)
+		return fmt.Errorf("error reading config file %v", err)
 	}
 
 	err = yaml.Unmarshal(yamlFile, c)
 
 	if err != nil {
-		log.Fatalf("error loading config %v\n", err)
+		return fmt.Errorf("error loading config %v", err)
 	}
 	c.cfgFile = cfgFile
+	return nil
 }
 
 // Write current config to file

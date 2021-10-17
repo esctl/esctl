@@ -8,14 +8,13 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
-type FileUtils struct {
-}
+type ReadFn func(string) ([]byte, error)
 
-func (f FileUtils) Read(file string) ([]byte, error) {
+func Read(file string) ([]byte, error) {
 	return ioutil.ReadFile(file)
 }
 
-func (f FileUtils) HomeDir() string {
+func HomeDir() string {
 	home, err := homedir.Dir()
 	if err != nil {
 		fmt.Println(err)
