@@ -17,20 +17,41 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/esctl/esctl/internal/cmd/cluster"
 	"github.com/esctl/esctl/internal/cmd/root"
+	"github.com/esctl/esctl/pkg/config"
+	"github.com/esctl/esctl/pkg/fs"
+	"github.com/spf13/cobra"
 )
 
 func main() {
 	setup()
 }
 
-func setup() {
-	rootCmd := root.NewRootCmd()
+var cfg = &config.ClusterConfig{}
+var cfgFile string
 
+func setup() {
+
+	rootCmd := root.NewCmd()
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.esctl.yaml)")
+
+	err := cfg.Load(cfgFile, fs.Read)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	initSubCommands(rootCmd)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+}
+
+func initSubCommands(rootCmd *cobra.Command) {
+	rootCmd.AddCommand(cluster.NewCmd(cfg))
 }
