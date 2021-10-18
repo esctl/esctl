@@ -39,13 +39,13 @@ func (c *ClusterConfig) Load(cfgFile string, readFn fs.ReadFn) error {
 	yamlFile, err := readFn(cfgFile)
 
 	if err != nil {
-		return fmt.Errorf("error reading config file %v", err)
+		return fmt.Errorf("reading config file %w", err)
 	}
 
 	err = yaml.Unmarshal(yamlFile, c)
 
 	if err != nil {
-		return fmt.Errorf("error loading config %v", err)
+		return fmt.Errorf("loading config %w", err)
 	}
 	c.cfgFile = cfgFile
 	return nil
@@ -55,7 +55,7 @@ func (c *ClusterConfig) Load(cfgFile string, readFn fs.ReadFn) error {
 func (c *ClusterConfig) Write(writeFn fs.WriteFn) error {
 	yamlData, err := yaml.Marshal(c)
 	if err != nil {
-		return fmt.Errorf("error while Marshaling %v", err)
+		return fmt.Errorf("while Marshaling %w", err)
 	}
 
 	err = writeFn(c.cfgFile, yamlData, 0644)

@@ -86,7 +86,7 @@ func TestClusterConfig_Write(t *testing.T) {
 			args: args{
 				write: func(s string, b []byte, fm stdlib_fs.FileMode) error {
 					expected, err := yaml.Marshal(localClusterConfig)
-					assert.Nil(t, err, "Not expecting an error here")
+					assert.Nil(t, err, "Unexpected yaml marshal error")
 					assert.Equal(t, expected, b, "config data mismatch")
 					return nil
 				},
