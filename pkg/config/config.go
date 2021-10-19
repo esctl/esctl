@@ -107,3 +107,19 @@ func (c *ClusterConfig) AddCluster() {
 	}
 	c.Clusters = append(c.Clusters, cluster)
 }
+
+func (c *ClusterConfig) SetActive(name string) error {
+	var found bool
+	for _, v := range c.Clusters {
+		if name == v.Name {
+			found = true
+			break
+		}
+	}
+	if found {
+		c.CurrentCluster = name
+		return c.Write()
+	}
+
+	return fmt.Errorf("cluster %v not found", name)
+}

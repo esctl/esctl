@@ -16,6 +16,7 @@ func NewCmd(cfg *config.ClusterConfig) *cobra.Command {
 	}
 	clusterCmd.AddCommand(newClusterListCmd(cfg))
 	clusterCmd.AddCommand(newClusterAddCmd(cfg))
+	clusterCmd.AddCommand(newClusterSetActiveCmd(cfg))
 	return clusterCmd
 }
 
@@ -45,5 +46,21 @@ func newClusterAddCmd(cfg *config.ClusterConfig) *cobra.Command {
 			}
 		},
 	}
+	return clusterAddCmd
+}
+
+func newClusterSetActiveCmd(cfg *config.ClusterConfig) *cobra.Command {
+
+	clusterAddCmd := &cobra.Command{
+		Use:   "set-active",
+		Short: "sa",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := cfg.SetActive(args[0]); err != nil {
+				log.Fatalf("error: setting active cluster, %v", err)
+			}
+		},
+		Args: cobra.ExactArgs(1),
+	}
+
 	return clusterAddCmd
 }
