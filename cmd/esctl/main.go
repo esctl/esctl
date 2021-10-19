@@ -31,7 +31,7 @@ func main() {
 	setup()
 }
 
-var cfg = &config.ClusterConfig{}
+var cfg = config.New(fs.Write, fs.Read)
 var cfgFile string
 
 func setup() {
@@ -39,7 +39,7 @@ func setup() {
 	rootCmd := root.NewCmd()
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.esctl.yaml)")
 
-	err := cfg.Load(cfgFile, fs.Read)
+	err := cfg.Load(cfgFile)
 	if err != nil {
 		log.Fatal(err)
 	}
