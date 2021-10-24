@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/esctl/esctl/pkg/fs"
-	"gopkg.in/AlecAivazis/survey.v1"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -122,4 +122,29 @@ func (c *ClusterConfig) SetActive(name string) error {
 	}
 
 	return fmt.Errorf("cluster %v not found", name)
+}
+
+func (c *ClusterConfig) DeleteCluster() {
+	clusterNames := make([]string, 0, len(c.Clusters))
+	for _, cl := range c.Clusters {
+		clusterNames = append(clusterNames, cl.Name)
+	}
+	name := ""
+	prompt := &survey.Select{
+		Message: "Choose name of the cluster: ",
+		Options: clusterNames,
+	}
+	err := survey.AskOne(prompt, &name, survey.WithValidator(survey.Required))
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	clusters := make([]Cluster, 0, len(c.Clusters))
+
+	for _, cluster := range c.Clusters {
+		if cluster.Name != name {
+			clusters = append(clusters, cluster)
+		}
+	}
+	c.Clusters = clusters
 }

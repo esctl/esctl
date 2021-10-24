@@ -17,6 +17,7 @@ func NewCmd(cfg *config.ClusterConfig) *cobra.Command {
 	clusterCmd.AddCommand(newClusterListCmd(cfg))
 	clusterCmd.AddCommand(newClusterAddCmd(cfg))
 	clusterCmd.AddCommand(newClusterSetActiveCmd(cfg))
+	clusterCmd.AddCommand(newClusterDeleteCmd(cfg))
 	return clusterCmd
 }
 
@@ -63,4 +64,21 @@ func newClusterSetActiveCmd(cfg *config.ClusterConfig) *cobra.Command {
 	}
 
 	return clusterAddCmd
+}
+
+func newClusterDeleteCmd(cfg *config.ClusterConfig) *cobra.Command {
+
+	clusterDeleteCmd := &cobra.Command{
+		Use:   "delete",
+		Short: "",
+		Run: func(cmd *cobra.Command, args []string) {
+			cfg.DeleteCluster()
+			err := cfg.Write()
+
+			if err != nil {
+				log.Fatalf("Error updating config file %v", err)
+			}
+		},
+	}
+	return clusterDeleteCmd
 }
