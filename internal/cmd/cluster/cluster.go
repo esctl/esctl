@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/esctl/esctl/pkg/config"
-	"github.com/esctl/esctl/pkg/fs"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +16,7 @@ func NewCmd(cfg *config.ClusterConfig) *cobra.Command {
 	}
 	clusterCmd.AddCommand(newClusterListCmd(cfg))
 	clusterCmd.AddCommand(newClusterAddCmd(cfg))
+	clusterCmd.AddCommand(newClusterSetActiveCmd(cfg))
 	return clusterCmd
 }
 
@@ -39,12 +39,28 @@ func newClusterAddCmd(cfg *config.ClusterConfig) *cobra.Command {
 		Short: "",
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg.AddCluster()
-			err := cfg.Write(fs.Write)
+			err := cfg.Write()
 
 			if err != nil {
 				log.Fatalf("Error writing config file %v", err)
 			}
 		},
 	}
+	return clusterAddCmd
+}
+
+func newClusterSetActiveCmd(cfg *config.ClusterConfig) *cobra.Command {
+
+	clusterAddCmd := &cobra.Command{
+		Use:   "set-active",
+		Short: "sa",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := cfg.SetActive(args[0]); err != nil {
+				log.Fatalf("error: setting active cluster, %v", err)
+			}
+		},
+		Args: cobra.ExactArgs(1),
+	}
+
 	return clusterAddCmd
 }

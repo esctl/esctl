@@ -15,6 +15,15 @@ type ClusterConfig struct {
 	CurrentCluster string    `yaml:"CurrentCluster"`
 	Clusters       []Cluster `yaml:"Clusters"`
 	cfgFile        string
+	w              fs.WriteFn
+	r              fs.ReadFn
+}
+
+func New(w fs.WriteFn, r fs.ReadFn) *ClusterConfig {
+	return &ClusterConfig{
+		w: w,
+		r: r,
+	}
 }
 
 func (cc ClusterConfig) String() string {
@@ -30,13 +39,13 @@ func (c Cluster) String() string {
 	return fmt.Sprintf("Name: %v  Hosts: %v\n", c.Name, c.Hosts)
 }
 
-func (c *ClusterConfig) Load(cfgFile string, readFn fs.ReadFn) error {
+func (c *ClusterConfig) Load(cfgFile string) error {
 
 	if cfgFile == "" {
 		cfgFile = path.Join(fs.HomeDir(), ".esctl")
 	}
 
-	yamlFile, err := readFn(cfgFile)
+	yamlFile, err := c.r(cfgFile)
 
 	if err != nil {
 		return fmt.Errorf("reading config file %w", err)
@@ -52,13 +61,13 @@ func (c *ClusterConfig) Load(cfgFile string, readFn fs.ReadFn) error {
 }
 
 // Write current config to file
-func (c *ClusterConfig) Write(writeFn fs.WriteFn) error {
+func (c *ClusterConfig) Write() error {
 	yamlData, err := yaml.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("while Marshaling %w", err)
 	}
 
-	err = writeFn(c.cfgFile, yamlData, 0644)
+	err = c.w(c.cfgFile, yamlData, 0644)
 	if err != nil {
 		return err
 	}
@@ -97,4 +106,20 @@ func (c *ClusterConfig) AddCluster() {
 		Hosts: hosts,
 	}
 	c.Clusters = append(c.Clusters, cluster)
+}
+
+func (c *ClusterConfig) SetActive(name string) error {
+	var found bool
+	for _, v := range c.Clusters {
+		if name == v.Name {
+			found = true
+			break
+		}
+	}
+	if found {
+		c.CurrentCluster = name
+		return c.Write()
+	}
+
+	return fmt.Errorf("cluster %v not found", name)
 }

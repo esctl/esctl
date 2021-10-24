@@ -14,11 +14,11 @@ func TestClusterConfig_Load(t *testing.T) {
 		CurrentCluster string
 		Clusters       []Cluster
 		cfgFile        string
+		ReadFn         fs.ReadFn
 	}
 
 	type args struct {
 		cfgFile string
-		ReadFn  fs.ReadFn
 	}
 	tests := []struct {
 		name   string
@@ -29,6 +29,8 @@ func TestClusterConfig_Load(t *testing.T) {
 			name: "Should load config from valid yaml file",
 			args: args{
 				cfgFile: "/some/config.yaml",
+			},
+			fields: fields{
 				ReadFn: func(s string) ([]byte, error) {
 					c := `
                           CurrentCluster: ""
@@ -49,8 +51,9 @@ func TestClusterConfig_Load(t *testing.T) {
 				CurrentCluster: tt.fields.CurrentCluster,
 				Clusters:       tt.fields.Clusters,
 				cfgFile:        tt.fields.cfgFile,
+				r:              tt.fields.ReadFn,
 			}
-			err := c.Load(tt.args.cfgFile, tt.args.ReadFn)
+			err := c.Load(tt.args.cfgFile)
 			assert.Nil(t, err, "error not expected")
 			assert.Equal(t, "Test", c.Clusters[0].Name, "Cluster Names do not match")
 			assert.Equal(t, "http://node1:1234", c.Clusters[0].Hosts[0], "Host do not match")
@@ -61,9 +64,6 @@ func TestClusterConfig_Load(t *testing.T) {
 }
 
 func TestClusterConfig_Write(t *testing.T) {
-	type args struct {
-		write fs.WriteFn
-	}
 
 	localClusterConfig := ClusterConfig{
 		cfgFile:        "/some/conf.yaml",
@@ -75,32 +75,32 @@ func TestClusterConfig_Write(t *testing.T) {
 			},
 		},
 	}
+	localClusterConfig.w = func(s string, b []byte, fm stdlib_fs.FileMode) error {
+		expected, err := yaml.Marshal(localClusterConfig)
+		assert.Nil(t, err, "Unexpected yaml marshal error")
+		assert.Equal(t, expected, b, "config data mismatch")
+		return nil
+	}
+
 	tests := []struct {
 		name   string
 		fields ClusterConfig
-		args   args
 	}{
 		{
 			name:   "should write config to file",
 			fields: localClusterConfig,
-			args: args{
-				write: func(s string, b []byte, fm stdlib_fs.FileMode) error {
-					expected, err := yaml.Marshal(localClusterConfig)
-					assert.Nil(t, err, "Unexpected yaml marshal error")
-					assert.Equal(t, expected, b, "config data mismatch")
-					return nil
-				},
-			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &ClusterConfig{
 				CurrentCluster: tt.fields.CurrentCluster,
 				Clusters:       tt.fields.Clusters,
 				cfgFile:        tt.fields.cfgFile,
+				w:              tt.fields.w,
 			}
-			err := c.Write(tt.args.write)
+			err := c.Write()
 			assert.Nil(t, err, "error not expected")
 		})
 	}
