@@ -64,7 +64,7 @@ func (c *ClusterConfig) Load(cfgFile string) error {
 func (c *ClusterConfig) Write() error {
 	yamlData, err := yaml.Marshal(c)
 	if err != nil {
-		return fmt.Errorf("while Marshaling %w", err)
+		return fmt.Errorf("yaml marshall: %w", err)
 	}
 
 	err = c.w(c.cfgFile, yamlData, 0644)
@@ -109,42 +109,98 @@ func (c *ClusterConfig) AddCluster() {
 }
 
 func (c *ClusterConfig) SetActive(name string) error {
-	var found bool
-	for _, v := range c.Clusters {
-		if name == v.Name {
-			found = true
-			break
-		}
-	}
-	if found {
-		c.CurrentCluster = name
-		return c.Write()
+	if len(c.Clusters) == 0 {
+		return fmt.Errorf("no clusters found")
 	}
 
-	return fmt.Errorf("cluster %v not found", name)
+	if name != "" {
+		_, err := c.find(name)
+		if err != nil {
+			return err
+		}
+		c.CurrentCluster = name
+	} else {
+		prompt := &survey.Select{
+			Message: "Choose name of the cluster:",
+			Options: c.names(),
+		}
+		err := survey.AskOne(prompt, &name, survey.WithValidator(survey.Required))
+		if err != nil {
+			return fmt.Errorf("survey select: %w", err)
+		}
+		c.CurrentCluster = name
+	}
+
+	err := c.Write()
+	if err != nil {
+		return fmt.Errorf("persist config: %w", err)
+	}
+
+	fmt.Printf("Set %v as active cluster\n", name)
+	return nil
 }
 
-func (c *ClusterConfig) DeleteCluster() {
-	clusterNames := make([]string, 0, len(c.Clusters))
-	for _, cl := range c.Clusters {
-		clusterNames = append(clusterNames, cl.Name)
+func (c *ClusterConfig) DeleteCluster(name string) error {
+	if len(c.Clusters) == 0 {
+		return fmt.Errorf("no clusters found")
 	}
-	name := ""
+
+	if name != "" {
+		_, err := c.find(name)
+		if err != nil {
+			return err
+		}
+		return c.delete(name)
+	}
+
 	prompt := &survey.Select{
-		Message: "Choose name of the cluster: ",
-		Options: clusterNames,
+		Message: "Choose name of the cluster:",
+		Options: c.names(),
 	}
 	err := survey.AskOne(prompt, &name, survey.WithValidator(survey.Required))
 	if err != nil {
-		log.Fatal(err.Error())
+		return fmt.Errorf("survey select: %w", err)
 	}
 
-	clusters := make([]Cluster, 0, len(c.Clusters))
+	return c.delete(name)
+}
 
+func (c *ClusterConfig) names() (names []string) {
+	names = make([]string, 0, len(c.Clusters))
+	for _, cl := range c.Clusters {
+		names = append(names, cl.Name)
+	}
+	return
+}
+
+func (c *ClusterConfig) find(name string) (*Cluster, error) {
+	for _, cluster := range c.Clusters {
+		if name == cluster.Name {
+			return &cluster, nil
+		}
+	}
+	return nil, fmt.Errorf("cluster %v not found", name)
+}
+
+func (c *ClusterConfig) delete(name string) error {
+	clusters := make([]Cluster, 0, len(c.Clusters))
 	for _, cluster := range c.Clusters {
 		if cluster.Name != name {
 			clusters = append(clusters, cluster)
 		}
 	}
+
 	c.Clusters = clusters
+	// Reset current cluster if it's deleted from config
+	if c.CurrentCluster == name {
+		c.CurrentCluster = ""
+	}
+
+	err := c.Write()
+	if err != nil {
+		return fmt.Errorf("persist config: %w", err)
+	}
+
+	fmt.Printf("Deleted %v from cluster config\n", name)
+	return nil
 }
