@@ -61,7 +61,7 @@ func (c *ClusterConfig) Load(cfgFile string) error {
 }
 
 // Write current config to file
-func (c *ClusterConfig) Write() error {
+func (c *ClusterConfig) write() error {
 	yamlData, err := yaml.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("yaml marshall: %w", err)
@@ -74,7 +74,7 @@ func (c *ClusterConfig) Write() error {
 	return nil
 }
 
-func (c *ClusterConfig) AddCluster() {
+func (c *ClusterConfig) AddCluster() error {
 	var qs = []*survey.Question{
 		{
 			Name:      "name",
@@ -106,6 +106,12 @@ func (c *ClusterConfig) AddCluster() {
 		Hosts: hosts,
 	}
 	c.Clusters = append(c.Clusters, cluster)
+
+	err = c.write()
+	if err != nil {
+		return fmt.Errorf("persist config: %w", err)
+	}
+	return nil
 }
 
 func (c *ClusterConfig) SetActive(name string) error {
@@ -131,7 +137,7 @@ func (c *ClusterConfig) SetActive(name string) error {
 		c.CurrentCluster = name
 	}
 
-	err := c.Write()
+	err := c.write()
 	if err != nil {
 		return fmt.Errorf("persist config: %w", err)
 	}
@@ -196,7 +202,7 @@ func (c *ClusterConfig) delete(name string) error {
 		c.CurrentCluster = ""
 	}
 
-	err := c.Write()
+	err := c.write()
 	if err != nil {
 		return fmt.Errorf("persist config: %w", err)
 	}

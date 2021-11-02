@@ -39,11 +39,9 @@ func newClusterAddCmd(cfg *config.ClusterConfig) *cobra.Command {
 		Use:   "add",
 		Short: "",
 		Run: func(cmd *cobra.Command, args []string) {
-			cfg.AddCluster()
-			err := cfg.Write()
-
+			err := cfg.AddCluster()
 			if err != nil {
-				log.Fatalf("Error writing config file: %v", err)
+				log.Fatalf("Error adding cluster: %v", err)
 			}
 		},
 	}
@@ -61,7 +59,7 @@ func newClusterSetActiveCmd(cfg *config.ClusterConfig) *cobra.Command {
 				name = args[0]
 			}
 			if err := cfg.SetActive(name); err != nil {
-				log.Fatalf("error: setting active cluster: %v", err)
+				log.Fatalf("Error setting active cluster: %v", err)
 			}
 		},
 		Args: cobra.MaximumNArgs(1),

@@ -101,7 +101,7 @@ func TestClusterConfig_Write(t *testing.T) {
 				cfgFile:        tt.fields.cfgFile,
 				w:              tt.fields.w,
 			}
-			err := c.Write()
+			err := c.write()
 			assert.Nil(t, err, "error not expected")
 		})
 	}
