@@ -6,6 +6,7 @@ import (
 
 	"github.com/esctl/esctl/pkg/fs"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -100,8 +101,94 @@ func TestClusterConfig_Write(t *testing.T) {
 				cfgFile:        tt.fields.cfgFile,
 				w:              tt.fields.w,
 			}
-			err := c.Write()
+			err := c.write()
 			assert.Nil(t, err, "error not expected")
 		})
 	}
+}
+
+func TestClusterConfig_SetActive(t *testing.T) {
+	c := &ClusterConfig{
+		Clusters: []Cluster{
+			{Name: "Server1", Hosts: []string{"http:node1:1234"}},
+			{Name: "Server2", Hosts: []string{"http://node2:5678"}},
+		},
+	}
+
+	c.w = func(s string, b []byte, fm stdlib_fs.FileMode) error {
+		expected, err := yaml.Marshal(c)
+		assert.Nil(t, err, "Unexpected yaml marshal error")
+		assert.Equal(t, expected, b, "Config data mismatch")
+		return nil
+	}
+
+	err := c.SetActive("Server1")
+
+	require.NoError(t, err, "Unexpected set active cluster error")
+	assert.Equal(t, "Server1", c.CurrentCluster, "Incorrect current cluster name")
+}
+
+func TestClusterConfig_SetActiveForInvalidClusterName(t *testing.T) {
+	c := &ClusterConfig{
+		Clusters: []Cluster{
+			{Name: "Server1", Hosts: []string{"http:node1:1234"}},
+			{Name: "Server2", Hosts: []string{"http://node2:5678"}},
+		},
+	}
+
+	c.w = func(s string, b []byte, fm stdlib_fs.FileMode) error {
+		expected, err := yaml.Marshal(c)
+		assert.Nil(t, err, "Unexpected yaml marshal error")
+		assert.Equal(t, expected, b, "Config data mismatch")
+		return nil
+	}
+
+	err := c.SetActive("Server3")
+
+	assert.EqualError(t, err, "cluster Server3 not found", "Incorrect set active cluster error")
+	assert.Equal(t, "", c.CurrentCluster, "Incorrect current cluster name")
+}
+
+func TestClusterConfig_DeleteCluster(t *testing.T) {
+	c := &ClusterConfig{
+		Clusters: []Cluster{
+			{Name: "Server1", Hosts: []string{"http:node1:1234"}},
+			{Name: "Server2", Hosts: []string{"http://node2:5678"}},
+		},
+		CurrentCluster: "Server2",
+	}
+
+	c.w = func(s string, b []byte, fm stdlib_fs.FileMode) error {
+		expected, err := yaml.Marshal(c)
+		assert.Nil(t, err, "Unexpected yaml marshal error")
+		assert.Equal(t, expected, b, "Config data mismatch")
+		return nil
+	}
+
+	err := c.DeleteCluster("Server2")
+
+	require.NoError(t, err, "Unexpected set active cluster error")
+	assert.Len(t, c.Clusters, 1, "Incorrect count of clusters")
+	assert.Equal(t, "Server1", c.Clusters[0].Name, "Incorrect cluster name")
+	assert.Equal(t, "", c.CurrentCluster, "Incorrect current cluster name")
+}
+
+func TestClusterConfig_DeleteClusterForInvalidClusterName(t *testing.T) {
+	c := &ClusterConfig{
+		Clusters: []Cluster{
+			{Name: "Server1", Hosts: []string{"http:node1:1234"}},
+			{Name: "Server2", Hosts: []string{"http://node2:5678"}},
+		},
+	}
+
+	c.w = func(s string, b []byte, fm stdlib_fs.FileMode) error {
+		expected, err := yaml.Marshal(c)
+		assert.Nil(t, err, "Unexpected yaml marshal error")
+		assert.Equal(t, expected, b, "Config data mismatch")
+		return nil
+	}
+
+	err := c.DeleteCluster("Server3")
+	assert.EqualError(t, err, "cluster Server3 not found", "Incorrect delete cluster error")
+	assert.Len(t, c.Clusters, 2, "Incorrect count of clusters")
 }

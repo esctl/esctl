@@ -39,11 +39,9 @@ func newClusterAddCmd(cfg *config.ClusterConfig) *cobra.Command {
 		Use:   "add",
 		Short: "",
 		Run: func(cmd *cobra.Command, args []string) {
-			cfg.AddCluster()
-			err := cfg.Write()
-
+			err := cfg.AddCluster()
 			if err != nil {
-				log.Fatalf("Error writing config file %v", err)
+				log.Fatalf("Error adding cluster: %v", err)
 			}
 		},
 	}
@@ -56,11 +54,15 @@ func newClusterSetActiveCmd(cfg *config.ClusterConfig) *cobra.Command {
 		Use:   "set-active",
 		Short: "sa",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := cfg.SetActive(args[0]); err != nil {
-				log.Fatalf("error: setting active cluster, %v", err)
+			name := ""
+			if len(args) > 0 {
+				name = args[0]
+			}
+			if err := cfg.SetActive(name); err != nil {
+				log.Fatalf("Error setting active cluster: %v", err)
 			}
 		},
-		Args: cobra.ExactArgs(1),
+		Args: cobra.MaximumNArgs(1),
 	}
 
 	return clusterAddCmd
@@ -72,13 +74,15 @@ func newClusterDeleteCmd(cfg *config.ClusterConfig) *cobra.Command {
 		Use:   "delete",
 		Short: "",
 		Run: func(cmd *cobra.Command, args []string) {
-			cfg.DeleteCluster()
-			err := cfg.Write()
-
-			if err != nil {
-				log.Fatalf("Error updating config file %v", err)
+			name := ""
+			if len(args) > 0 {
+				name = args[0]
+			}
+			if err := cfg.DeleteCluster(name); err != nil {
+				log.Fatalf("Error deleting cluster: %v", err)
 			}
 		},
+		Args: cobra.MaximumNArgs(1),
 	}
 	return clusterDeleteCmd
 }
