@@ -210,3 +210,11 @@ func (c *ClusterConfig) delete(name string) error {
 	fmt.Printf("Deleted %v from cluster config\n", name)
 	return nil
 }
+
+func (c *ClusterConfig) GetCurrentCluster() *Cluster {
+	cc, err := c.find(c.CurrentCluster)
+	if err != nil {
+		return nil
+	}
+	return cc
+}
