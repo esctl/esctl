@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/esctl/esctl/pkg/config"
@@ -27,7 +26,7 @@ func newConfigListCmd(cfg *config.ClusterConfig) *cobra.Command {
 		Use:   "list",
 		Short: "",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("%v", cfg)
+			config.Print(cfg)
 		},
 	}
 	return configListCmd
