@@ -20,7 +20,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/esctl/esctl/internal/cmd/cluster"
+	confCmd "github.com/esctl/esctl/internal/cmd/config"
 	"github.com/esctl/esctl/internal/cmd/root"
 	"github.com/esctl/esctl/pkg/config"
 	"github.com/esctl/esctl/pkg/fs"
@@ -53,5 +53,5 @@ func setup() {
 }
 
 func initSubCommands(rootCmd *cobra.Command) {
-	rootCmd.AddCommand(cluster.NewCmd(cfg))
+	rootCmd.AddCommand(confCmd.NewCmd(cfg))
 }
