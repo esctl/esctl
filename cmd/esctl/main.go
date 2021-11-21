@@ -26,6 +26,7 @@ import (
 	"github.com/esctl/esctl/pkg/config"
 	"github.com/esctl/esctl/pkg/fs"
 	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
 )
 
 func main() {
@@ -49,6 +50,12 @@ func setup() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+	if len(os.Getenv("ESCTL_GEN_DOCS")) > 0 {
+		err = doc.GenMarkdownTree(rootCmd, "./docs")
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 }
