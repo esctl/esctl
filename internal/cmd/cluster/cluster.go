@@ -1,7 +1,6 @@
 package cluster
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/esctl/esctl/pkg/config"
@@ -43,7 +42,7 @@ func newClusterHealthCmd(c *config.Cluster) *cobra.Command {
 				log.Fatalf("Error getting cluster health, reason=[%v]", err)
 			}
 
-			fmt.Println(r)
+			r.Print()
 		},
 	}
 	return healthCmd
