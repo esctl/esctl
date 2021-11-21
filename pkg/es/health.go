@@ -3,6 +3,7 @@ package es
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/pterm/pterm"
@@ -40,9 +41,9 @@ func (h HealthResponse) Print() {
 		st = pterm.FgRed
 	}
 
-	pterm.DefaultBigText.WithLetters(
-		pterm.NewLettersFromStringWithStyle(h.Status, pterm.NewStyle(st))).
-		Render()
-
+	err := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromStringWithStyle(h.Status, pterm.NewStyle(st))).Render()
+	if err != nil {
+		log.Fatalf("Error printing health output %v", err)
+	}
 	pterm.DefaultBasicText.Println("Cluster Name", pterm.FgBlue.Sprint(h.ClusterName))
 }
