@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/http"
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -51,12 +50,4 @@ func (e *ElasticSearchClient) GetHealth() (HealthResponse, error) {
 type HealthResponse struct {
 	ClusterName string `json:"cluster_name"`
 	Status      string
-}
-
-type mockTransport struct {
-	roundTripFunc func(*http.Request) (*http.Response, error)
-}
-
-func (t *mockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	return t.roundTripFunc(req)
 }
