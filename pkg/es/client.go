@@ -10,7 +10,7 @@ import (
 	"github.com/esctl/esctl/pkg/config"
 )
 
-func New(c *config.Cluster) (*ElasticSearchClient, error) {
+func New(c *config.Cluster) (*elasticSearchClient, error) {
 
 	if len(c.Hosts) == 0 {
 		return nil, errors.New("no hosts provided in config")
@@ -22,16 +22,16 @@ func New(c *config.Cluster) (*ElasticSearchClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ElasticSearchClient{
+	return &elasticSearchClient{
 		c: es,
 	}, nil
 }
 
-type ElasticSearchClient struct {
+type elasticSearchClient struct {
 	c *elasticsearch.Client
 }
 
-func (e *ElasticSearchClient) GetHealth() (HealthResponse, error) {
+func (e *elasticSearchClient) GetHealth() (HealthResponse, error) {
 	healthResponse := HealthResponse{}
 	req := esapi.ClusterHealthRequest{}
 	res, err := req.Do(context.Background(), e.c)

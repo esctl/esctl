@@ -55,7 +55,14 @@ func TestESSearchClient_GetHealth(t *testing.T) {
 		"unassigned_shards": 0
 	}
 	`
-	client := ElasticSearchClient{}
+	cfg := &config.Cluster{
+		Name: "Hello",
+		Hosts: []string{
+			"http://hello1:9700",
+		},
+	}
+
+	client, _ := New(cfg)
 	mockC, _ := elasticsearch.NewClient(elasticsearch.Config{Transport: &mockTransport{
 		roundTripFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
@@ -76,7 +83,15 @@ func TestESSearchClient_GetHealth(t *testing.T) {
 
 func TestESSearchClient_GetHealth_Error(t *testing.T) {
 
-	client := ElasticSearchClient{}
+	cfg := &config.Cluster{
+		Name: "Hello",
+		Hosts: []string{
+			"http://hello1:9700",
+		},
+	}
+
+	client, _ := New(cfg)
+
 	mockC, _ := elasticsearch.NewClient(elasticsearch.Config{Transport: &mockTransport{
 		roundTripFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
