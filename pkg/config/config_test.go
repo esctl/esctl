@@ -192,3 +192,32 @@ func TestClusterConfig_DeleteClusterForInvalidClusterName(t *testing.T) {
 	assert.EqualError(t, err, "cluster Server3 not found", "Incorrect delete cluster error")
 	assert.Len(t, c.Clusters, 2, "Incorrect count of clusters")
 }
+
+func TestClusterConfig_GetCurrentCluster(t *testing.T) {
+	s1 := Cluster{Name: "Server1", Hosts: []string{"http:node1:1234"}}
+	s2 := Cluster{Name: "Server2", Hosts: []string{"http://node2:5678"}}
+
+	c := &ClusterConfig{
+		Clusters:       []Cluster{s1, s2},
+		CurrentCluster: "Server1",
+	}
+
+	actualCurrentCluster := c.GetCurrentCluster()
+	expectedCurrentCluster := &s1
+
+	assert.Equal(t, expectedCurrentCluster, actualCurrentCluster, "Unexpected current cluster config")
+}
+
+func TestClusterConfig_GetCurrentCluster_Return_Nil_when_not_Set(t *testing.T) {
+	s1 := Cluster{Name: "Server1", Hosts: []string{"http:node1:1234"}}
+	s2 := Cluster{Name: "Server2", Hosts: []string{"http://node2:5678"}}
+
+	c := &ClusterConfig{
+		Clusters: []Cluster{s1, s2},
+	}
+
+	var expected *Cluster = nil
+	actualCurrentCluster := c.GetCurrentCluster()
+
+	assert.Equal(t, expected, actualCurrentCluster, "Unexpected current cluster config")
+}

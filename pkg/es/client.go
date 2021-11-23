@@ -1,0 +1,53 @@
+package es
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/esctl/esctl/pkg/config"
+)
+
+func New(c *config.Cluster) (*elasticSearchClient, error) {
+
+	if len(c.Hosts) == 0 {
+		return nil, errors.New("no hosts provided in config")
+	}
+	cfg := elasticsearch.Config{
+		Addresses: c.Hosts,
+	}
+	es, err := elasticsearch.NewClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return &elasticSearchClient{
+		c: es,
+	}, nil
+}
+
+type elasticSearchClient struct {
+	c *elasticsearch.Client
+}
+
+func (e *elasticSearchClient) GetHealth() (HealthResponse, error) {
+	healthResponse := HealthResponse{}
+	req := esapi.ClusterHealthRequest{}
+	res, err := req.Do(context.Background(), e.c)
+	if err != nil {
+		return healthResponse, err
+	}
+
+	err = json.NewDecoder(res.Body).Decode(&healthResponse)
+	if err != nil {
+		return healthResponse, err
+	}
+
+	return healthResponse, nil
+}
+
+type HealthResponse struct {
+	ClusterName string `json:"cluster_name"`
+	Status      string
+}

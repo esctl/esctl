@@ -5,84 +5,46 @@ import (
 	"log"
 
 	"github.com/esctl/esctl/pkg/config"
+	"github.com/esctl/esctl/pkg/es"
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(cfg *config.ClusterConfig) *cobra.Command {
+func NewCmd(c *config.Cluster) *cobra.Command {
 
 	clusterCmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "",
 	}
-	clusterCmd.AddCommand(newClusterListCmd(cfg))
-	clusterCmd.AddCommand(newClusterAddCmd(cfg))
-	clusterCmd.AddCommand(newClusterSetActiveCmd(cfg))
-	clusterCmd.AddCommand(newClusterDeleteCmd(cfg))
+	clusterCmd.AddCommand(newClusterHealthCmd(c))
+
 	return clusterCmd
 }
 
-func newClusterListCmd(cfg *config.ClusterConfig) *cobra.Command {
-
-	clusterListCmd := &cobra.Command{
-		Use:   "list",
+func newClusterHealthCmd(c *config.Cluster) *cobra.Command {
+	healthCmd := &cobra.Command{
+		Use:   "health",
 		Short: "",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("%v", cfg)
-		},
-	}
-	return clusterListCmd
-}
 
-func newClusterAddCmd(cfg *config.ClusterConfig) *cobra.Command {
+			if c == nil {
+				log.Fatal(`Cluster config is nil, Please add and set an active cluster config
+  esctl config add
+  esctl config set-active 
+`)
+			}
 
-	clusterAddCmd := &cobra.Command{
-		Use:   "add",
-		Short: "",
-		Run: func(cmd *cobra.Command, args []string) {
-			err := cfg.AddCluster()
+			client, err := es.New(c)
 			if err != nil {
-				log.Fatalf("Error adding cluster: %v", err)
+				log.Fatalf("Error creating elastic search client, reason=[%v]", err)
 			}
+
+			r, err := client.GetHealth()
+			if err != nil {
+				log.Fatalf("Error getting cluster health, reason=[%v]", err)
+			}
+
+			fmt.Println(r)
 		},
 	}
-	return clusterAddCmd
-}
-
-func newClusterSetActiveCmd(cfg *config.ClusterConfig) *cobra.Command {
-
-	clusterAddCmd := &cobra.Command{
-		Use:   "set-active",
-		Short: "sa",
-		Run: func(cmd *cobra.Command, args []string) {
-			name := ""
-			if len(args) > 0 {
-				name = args[0]
-			}
-			if err := cfg.SetActive(name); err != nil {
-				log.Fatalf("Error setting active cluster: %v", err)
-			}
-		},
-		Args: cobra.MaximumNArgs(1),
-	}
-
-	return clusterAddCmd
-}
-
-func newClusterDeleteCmd(cfg *config.ClusterConfig) *cobra.Command {
-
-	clusterDeleteCmd := &cobra.Command{
-		Use:   "delete",
-		Short: "",
-		Run: func(cmd *cobra.Command, args []string) {
-			name := ""
-			if len(args) > 0 {
-				name = args[0]
-			}
-			if err := cfg.DeleteCluster(name); err != nil {
-				log.Fatalf("Error deleting cluster: %v", err)
-			}
-		},
-		Args: cobra.MaximumNArgs(1),
-	}
-	return clusterDeleteCmd
+	return healthCmd
 }
