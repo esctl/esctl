@@ -23,3 +23,6 @@ fix:
 .PHONY: lint
 lint:
 	$(GOPATH)/bin/golangci-lint run
+
+gen-docs: build
+	./esctl --generate-docs

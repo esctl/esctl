@@ -16,9 +16,7 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
 	"log"
-	"os"
 
 	"github.com/esctl/esctl/internal/cmd/cluster"
 	confCmd "github.com/esctl/esctl/internal/cmd/config"
@@ -26,6 +24,7 @@ import (
 	"github.com/esctl/esctl/pkg/config"
 	"github.com/esctl/esctl/pkg/fs"
 	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
 )
 
 func main() {
@@ -34,23 +33,34 @@ func main() {
 
 var cfg = config.New(fs.Write, fs.Read)
 var cfgFile string
+var generateDocs bool
 
 func setup() {
 
 	rootCmd := root.NewCmd()
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.esctl.yaml)")
 
-	err := cfg.Load(cfgFile)
+	rootCmd.PersistentFlags().BoolVar(&generateDocs, "generate-docs", false, "this option only work with source code")
+	err := rootCmd.PersistentFlags().MarkHidden("generate-docs")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	initSubCommands(rootCmd)
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	err = cfg.Load(cfgFile)
+	if err != nil {
+		log.Fatalf("error loading config %v", err)
 	}
 
+	initSubCommands(rootCmd)
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
+	if generateDocs {
+		err = doc.GenMarkdownTree(rootCmd, "./docs")
+		if err != nil {
+			log.Fatal("Error generating markdown docs", err)
+		}
+	}
 }
 
 func initSubCommands(rootCmd *cobra.Command) {
