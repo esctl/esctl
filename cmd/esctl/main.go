@@ -35,11 +35,14 @@ func main() {
 
 var cfg = config.New(fs.Write, fs.Read)
 var cfgFile string
+var generateDocs bool
 
 func setup() {
 
 	rootCmd := root.NewCmd()
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.esctl.yaml)")
+	rootCmd.PersistentFlags().BoolVar(&generateDocs, "generate-docs", false, "this option only work with source code")
+	rootCmd.PersistentFlags().MarkHidden("generate-docs")
 
 	err := cfg.Load(cfgFile)
 	if err != nil {
@@ -51,13 +54,12 @@ func setup() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	if len(os.Getenv("ESCTL_GEN_DOCS")) > 0 {
+	if generateDocs {
 		err = doc.GenMarkdownTree(rootCmd, "./docs")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Error generating markdown docs", err)
 		}
 	}
-
 }
 
 func initSubCommands(rootCmd *cobra.Command) {
