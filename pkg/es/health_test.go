@@ -31,7 +31,7 @@ func TestESSearchClient_GetHealth(t *testing.T) {
 		"unassigned_shards": 0
 	}
 	`
-	client := ElasticSearchClient{}
+	client := elasticSearchClient{}
 	mockC, _ := elasticsearch.NewClient(elasticsearch.Config{Transport: &mockTransport{
 		roundTripFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
@@ -52,7 +52,7 @@ func TestESSearchClient_GetHealth(t *testing.T) {
 
 func TestESSearchClient_GetHealth_Error(t *testing.T) {
 
-	client := ElasticSearchClient{}
+	client := elasticSearchClient{}
 	mockC, _ := elasticsearch.NewClient(elasticsearch.Config{Transport: &mockTransport{
 		roundTripFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{

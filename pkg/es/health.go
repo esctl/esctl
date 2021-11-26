@@ -9,7 +9,7 @@ import (
 	"github.com/pterm/pterm"
 )
 
-func (e *ElasticSearchClient) GetHealth() (HealthResponse, error) {
+func (e *elasticSearchClient) GetHealth() (HealthResponse, error) {
 	healthResponse := HealthResponse{}
 	req := esapi.ClusterHealthRequest{}
 	res, err := req.Do(context.Background(), e.c)
