@@ -3,6 +3,7 @@ package es
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -14,7 +15,7 @@ func (e *elasticSearchClient) GetHealth() (HealthResponse, error) {
 	req := esapi.ClusterHealthRequest{}
 	res, err := req.Do(context.Background(), e.c)
 	if err != nil {
-		return healthResponse, err
+		return healthResponse, fmt.Errorf("calling health request to elastic search failed, %w", err)
 	}
 
 	err = json.NewDecoder(res.Body).Decode(&healthResponse)

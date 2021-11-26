@@ -16,9 +16,7 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
 	"log"
-	"os"
 
 	"github.com/esctl/esctl/internal/cmd/cluster"
 	confCmd "github.com/esctl/esctl/internal/cmd/config"
@@ -41,18 +39,21 @@ func setup() {
 
 	rootCmd := root.NewCmd()
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.esctl.yaml)")
-	rootCmd.PersistentFlags().BoolVar(&generateDocs, "generate-docs", false, "this option only work with source code")
-	rootCmd.PersistentFlags().MarkHidden("generate-docs")
 
-	err := cfg.Load(cfgFile)
+	rootCmd.PersistentFlags().BoolVar(&generateDocs, "generate-docs", false, "this option only work with source code")
+	err := rootCmd.PersistentFlags().MarkHidden("generate-docs")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	err = cfg.Load(cfgFile)
+	if err != nil {
+		log.Fatalf("error loading config %v", err)
+	}
+
 	initSubCommands(rootCmd)
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 	if generateDocs {
 		err = doc.GenMarkdownTree(rootCmd, "./docs")

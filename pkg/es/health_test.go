@@ -2,6 +2,7 @@ package es
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -52,6 +53,7 @@ func TestESSearchClient_GetHealth(t *testing.T) {
 
 func TestESSearchClient_GetHealth_Error(t *testing.T) {
 
+	expectedError := errors.New("An error occurred")
 	client := elasticSearchClient{}
 	mockC, _ := elasticsearch.NewClient(elasticsearch.Config{Transport: &mockTransport{
 		roundTripFunc: func(*http.Request) (*http.Response, error) {
@@ -59,7 +61,7 @@ func TestESSearchClient_GetHealth_Error(t *testing.T) {
 					Body:   ioutil.NopCloser(strings.NewReader("{}")),
 					Header: http.Header{"X-Elastic-Product": []string{"Elasticsearch"}},
 				},
-				errors.New("An error occurred")
+				expectedError
 		},
 	}})
 
@@ -67,6 +69,6 @@ func TestESSearchClient_GetHealth_Error(t *testing.T) {
 
 	actualResp, err := client.GetHealth()
 	assert.NotNil(t, err, "error expected")
-	assert.Equal(t, errors.New("An error occurred"), err)
+	assert.Equal(t, fmt.Errorf("calling health request to elastic search failed, %w", expectedError), err)
 	assert.Equal(t, HealthResponse{}, actualResp)
 }
