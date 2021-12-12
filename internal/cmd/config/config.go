@@ -52,7 +52,7 @@ func newConfigAddCmd(cfg *config.ClusterConfig) *cobra.Command {
 func newConfigSetActiveCmd(cfg *config.ClusterConfig) *cobra.Command {
 
 	configAddCmd := &cobra.Command{
-		Use:   "set-active",
+		Use:   "set-active [cluster_name]",
 		Short: "sa",
 		Run: func(cmd *cobra.Command, args []string) {
 			name := ""
@@ -72,7 +72,7 @@ func newConfigSetActiveCmd(cfg *config.ClusterConfig) *cobra.Command {
 func newConfigDeleteCmd(cfg *config.ClusterConfig) *cobra.Command {
 
 	configDeleteCmd := &cobra.Command{
-		Use:   "delete",
+		Use:   "delete [cluster_name]",
 		Short: "",
 		Run: func(cmd *cobra.Command, args []string) {
 			name := ""
