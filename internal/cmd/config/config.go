@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/esctl/esctl/pkg/config"
@@ -17,6 +18,7 @@ func NewCmd(cfg *config.ClusterConfig) *cobra.Command {
 	configCmd.AddCommand(newConfigAddCmd(cfg))
 	configCmd.AddCommand(newConfigSetActiveCmd(cfg))
 	configCmd.AddCommand(newConfigDeleteCmd(cfg))
+	configCmd.AddCommand(newConfigUpdateCmd(cfg))
 	return configCmd
 }
 
@@ -84,4 +86,30 @@ func newConfigDeleteCmd(cfg *config.ClusterConfig) *cobra.Command {
 		Args: cobra.MaximumNArgs(1),
 	}
 	return configDeleteCmd
+}
+
+func newConfigUpdateCmd(cfg *config.ClusterConfig) *cobra.Command {
+
+	configUpdateCmd := &cobra.Command{
+		Use:   "update [cluster_name] [new_host(s)]",
+		Short: "",
+		Run: func(cmd *cobra.Command, args []string) {
+			name, newHosts := "", ""
+			if len(args) > 1 {
+				name = args[0]
+				newHosts = args[1]
+			}
+			if err := cfg.UpdateCluster(name, newHosts); err != nil {
+				log.Fatalf("Error updating cluster config: %v", err)
+			}
+		},
+		// Accept positional arguments only if both cluster name and new host name(s) are present. If not, fall back to survey mode.
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 0 && len(args) < 2 {
+				return fmt.Errorf("invalid usage. Please provide both [cluster_name] and [new_host(s)] as arguments or use survey mode")
+			}
+			return nil
+		},
+	}
+	return configUpdateCmd
 }

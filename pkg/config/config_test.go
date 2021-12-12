@@ -221,3 +221,49 @@ func TestClusterConfig_GetCurrentCluster_Return_Nil_when_not_Set(t *testing.T) {
 
 	assert.Equal(t, expected, actualCurrentCluster, "Unexpected current cluster config")
 }
+
+func TestClusterConfig_UpdateCluster(t *testing.T) {
+	c := &ClusterConfig{
+		Clusters: []Cluster{
+			{Name: "Server1", Hosts: []string{"http:node1:1234"}},
+			{Name: "Server2", Hosts: []string{"http://node2:5678"}},
+		},
+		CurrentCluster: "Server2",
+	}
+
+	c.w = func(s string, b []byte, fm stdlib_fs.FileMode) error {
+		expected, err := yaml.Marshal(c)
+		assert.Nil(t, err, "Unexpected yaml marshal error")
+		assert.Equal(t, expected, b, "Config data mismatch")
+		return nil
+	}
+
+	err := c.UpdateCluster("Server2", "http:node2:1234,http:node2:5678")
+
+	require.NoError(t, err, "Unexpected update cluster hosts error")
+	assert.Len(t, c.Clusters, 2, "Incorrect count of clusters")
+	assert.Equal(t, "Server2", c.Clusters[1].Name, "Incorrect cluster name")
+	assert.Equal(t, []string{"http:node2:1234", "http:node2:5678"}, c.Clusters[1].Hosts, "Incorrect cluster hosts")
+}
+
+func TestClusterConfig_UpdateCluster_InvalidClusterName(t *testing.T) {
+	c := &ClusterConfig{
+		Clusters: []Cluster{
+			{Name: "Server1", Hosts: []string{"http:node1:1234"}},
+			{Name: "Server2", Hosts: []string{"http://node2:5678"}},
+		},
+		CurrentCluster: "Server2",
+	}
+
+	c.w = func(s string, b []byte, fm stdlib_fs.FileMode) error {
+		expected, err := yaml.Marshal(c)
+		assert.Nil(t, err, "Unexpected yaml marshal error")
+		assert.Equal(t, expected, b, "Config data mismatch")
+		return nil
+	}
+
+	err := c.UpdateCluster("Server3", "http:node2:1234,http:node2:5678")
+
+	require.Error(t, err, "Missing update cluster hosts error")
+	assert.EqualError(t, err, "cluster Server3 not found", "Incorrect update cluster error message")
+}
