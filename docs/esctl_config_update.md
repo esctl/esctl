@@ -1,15 +1,15 @@
-## esctl config delete
+## esctl config update
 
 
 
 ```
-esctl config delete [cluster_name] [flags]
+esctl config update [cluster_name] [new_host(s)] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for delete
+  -h, --help   help for update
 ```
 
 ### Options inherited from parent commands

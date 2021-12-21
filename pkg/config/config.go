@@ -171,6 +171,45 @@ func (c *ClusterConfig) DeleteCluster(name string) error {
 	return c.delete(name)
 }
 
+func (c *ClusterConfig) UpdateCluster(name, newHosts string) error {
+	if len(c.Clusters) == 0 {
+		return fmt.Errorf("no clusters found")
+	}
+
+	if name != "" {
+		_, err := c.find(name)
+		if err != nil {
+			return err
+		}
+		return c.update(name, newHosts)
+	}
+
+	prompt := &survey.Select{
+		Message: "Choose name of the cluster:",
+		Options: c.names(),
+	}
+	err := survey.AskOne(prompt, &name, survey.WithValidator(survey.Required))
+	if err != nil {
+		return fmt.Errorf("survey select: %w", err)
+	}
+
+	var qs = []*survey.Question{
+		{
+			Name:     "hosts",
+			Validate: survey.Required,
+			Prompt:   &survey.Input{Message: "Enter comma separated list of hosts: "},
+		},
+	}
+	a := struct{ Hosts string }{}
+
+	err = survey.Ask(qs, &a)
+	if err != nil {
+		return fmt.Errorf("get new hosts: %w", err)
+	}
+
+	return c.update(name, a.Hosts)
+}
+
 func (c *ClusterConfig) names() (names []string) {
 	names = make([]string, 0, len(c.Clusters))
 	for _, cl := range c.Clusters {
@@ -208,6 +247,22 @@ func (c *ClusterConfig) delete(name string) error {
 	}
 
 	fmt.Printf("Deleted %v from cluster config\n", name)
+	return nil
+}
+
+func (c *ClusterConfig) update(name, newHosts string) error {
+	hosts := strings.Split(newHosts, ",")
+	for i, cluster := range c.Clusters {
+		if cluster.Name == name {
+			c.Clusters[i].Hosts = hosts
+		}
+	}
+	err := c.write()
+	if err != nil {
+		return fmt.Errorf("persist config: %w", err)
+	}
+
+	fmt.Printf("Succefully updated hosts for %v cluster\n", name)
 	return nil
 }
 
