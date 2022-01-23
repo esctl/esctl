@@ -28,7 +28,7 @@ func newClusterCatNodesCmd(c *config.Cluster) *cobra.Command {
 			if c == nil {
 				log.Fatal(`Cluster config is nil, Please add and set an active cluster config
   esctl config add
-  esctl config set-active 
+  esctl config set-active
 `)
 			}
 			client, err := es.New(c)
