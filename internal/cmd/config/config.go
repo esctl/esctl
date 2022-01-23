@@ -52,8 +52,9 @@ func newConfigAddCmd(cfg *config.ClusterConfig) *cobra.Command {
 func newConfigSetActiveCmd(cfg *config.ClusterConfig) *cobra.Command {
 
 	configAddCmd := &cobra.Command{
-		Use:   "set-active [cluster_name]",
-		Short: "sa",
+		Use:     "set-active [cluster_name]",
+		Short:   "",
+		Aliases: []string{"sa"},
 		Run: func(cmd *cobra.Command, args []string) {
 			name := ""
 			if len(args) > 0 {

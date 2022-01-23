@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/esctl/esctl/pkg/config"
@@ -15,6 +16,7 @@ func NewCmd(c *config.Cluster) *cobra.Command {
 		Short: "",
 	}
 	clusterCmd.AddCommand(newClusterHealthCmd(c))
+	clusterCmd.AddCommand(newClusterExplainCmd(c))
 
 	return clusterCmd
 }
@@ -28,7 +30,7 @@ func newClusterHealthCmd(c *config.Cluster) *cobra.Command {
 			if c == nil {
 				log.Fatal(`Cluster config is nil, Please add and set an active cluster config
   esctl config add
-  esctl config set-active 
+  esctl config set-active
 `)
 			}
 
@@ -46,4 +48,34 @@ func newClusterHealthCmd(c *config.Cluster) *cobra.Command {
 		},
 	}
 	return healthCmd
+}
+
+func newClusterExplainCmd(c *config.Cluster) *cobra.Command {
+	explainAllocationCmd := &cobra.Command{
+		Use:     "explain-allocation",
+		Short:   "",
+		Aliases: []string{"ea"},
+		Run: func(cmd *cobra.Command, args []string) {
+
+			if c == nil {
+				log.Fatal(`Cluster config is nil, Please add and set an active cluster config
+  esctl config add
+  esctl config set-active
+`)
+			}
+
+			client, err := es.New(c)
+			if err != nil {
+				log.Fatalf("Error creating elastic search client, reason=[%v]", err)
+			}
+
+			r, err := client.ExplainAllocation()
+			if err != nil {
+				log.Fatalf("Error explaining shard allocation, reason=[%v]", err)
+			}
+
+			fmt.Println(r)
+		},
+	}
+	return explainAllocationCmd
 }
