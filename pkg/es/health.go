@@ -31,7 +31,7 @@ type HealthResponse struct {
 }
 
 func (h HealthResponse) Print(p printer.Printer) error {
-	s, err := p.BigLettersWithColor(h.Status, h.Status)
+	s, err := p.BigTextWithColor(h.Status, h.Status)
 	if err != nil {
 		return fmt.Errorf("printing health output failed, %w", err)
 	}

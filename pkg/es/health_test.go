@@ -83,7 +83,7 @@ func TestHealResponse_Print(t *testing.T) {
 		Status:      "green",
 	}
 
-	p.On("BigLettersWithColor", hr.Status, hr.Status).Return(expectedText, nil)
+	p.On("BigTextWithColor", hr.Status, hr.Status).Return(expectedText, nil)
 	p.On("HighlightText", hr.ClusterName).Return(hr.ClusterName)
 
 	err := hr.Print(&p)
@@ -101,7 +101,7 @@ func TestHealResponse_Print_Error(t *testing.T) {
 	}
 	renderErr := errors.New("render error")
 	expectedError := fmt.Errorf("printing health output failed, %w", renderErr)
-	p.On("BigLettersWithColor", hr.Status, hr.Status).Return(expectedText, renderErr)
+	p.On("BigTextWithColor", hr.Status, hr.Status).Return(expectedText, renderErr)
 
 	err := hr.Print(&p)
 	assert.NotNil(t, err)

@@ -6,7 +6,7 @@ type MockPrinter struct {
 	mock.Mock
 }
 
-func (p *MockPrinter) BigLettersWithColor(colorStr, text string) (string, error) {
+func (p *MockPrinter) BigTextWithColor(colorStr, text string) (string, error) {
 	args := p.Called(colorStr, text)
 	return args.String(0), args.Error(1)
 }
