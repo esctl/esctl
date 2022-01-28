@@ -77,7 +77,7 @@ func TestESClient_GetHealth_Error(t *testing.T) {
 
 func TestHealResponse_Print(t *testing.T) {
 	p := printer.MockPrinter{}
-	expectedText := "Gree in big text"
+	expectedText := "Green in big text"
 	hr := HealthResponse{
 		ClusterName: "TestCluster",
 		Status:      "green",
