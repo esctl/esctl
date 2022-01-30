@@ -8,11 +8,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/esctl/esctl/pkg/printer"
+
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestESSearchClient_GetHealth(t *testing.T) {
+func TestESClient_GetHealth(t *testing.T) {
 	resp := `
 	{
 		"active_primary_shards": 1,
@@ -51,7 +53,7 @@ func TestESSearchClient_GetHealth(t *testing.T) {
 	assert.Equal(t, "es-docker-cluster", actualResp.ClusterName)
 }
 
-func TestESSearchClient_GetHealth_Error(t *testing.T) {
+func TestESClient_GetHealth_Error(t *testing.T) {
 
 	expectedError := errors.New("An error occurred")
 	client := elasticSearchClient{}
@@ -71,4 +73,39 @@ func TestESSearchClient_GetHealth_Error(t *testing.T) {
 	assert.NotNil(t, err, "error expected")
 	assert.Equal(t, fmt.Errorf("calling health request to elastic search failed, %w", expectedError), err)
 	assert.Equal(t, HealthResponse{}, actualResp)
+}
+
+func TestHealResponse_Print(t *testing.T) {
+	p := printer.MockPrinter{}
+	expectedText := "Green in big text"
+	hr := HealthResponse{
+		ClusterName: "TestCluster",
+		Status:      "green",
+	}
+
+	p.On("BigTextWithColor", hr.Status, hr.Status).Return(expectedText, nil)
+	p.On("HighlightText", hr.ClusterName).Return(hr.ClusterName)
+
+	err := hr.Print(&p)
+	assert.Nil(t, err, "Not expecting an error here")
+	p.AssertExpectations(t)
+
+}
+
+func TestHealResponse_Print_Error(t *testing.T) {
+	p := printer.MockPrinter{}
+	expectedText := "Gree in big text"
+	hr := HealthResponse{
+		ClusterName: "TestCluster",
+		Status:      "green",
+	}
+	renderErr := errors.New("render error")
+	expectedError := fmt.Errorf("printing health output failed, %w", renderErr)
+	p.On("BigTextWithColor", hr.Status, hr.Status).Return(expectedText, renderErr)
+
+	err := hr.Print(&p)
+	assert.NotNil(t, err)
+	assert.Equal(t, expectedError, err, "error values do not match")
+	p.AssertExpectations(t)
+
 }

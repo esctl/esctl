@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/pterm/pterm"
+	"github.com/esctl/esctl/pkg/printer"
 )
 
 func (e *elasticSearchClient) GetHealth() (HealthResponse, error) {
@@ -31,20 +30,12 @@ type HealthResponse struct {
 	Status      string
 }
 
-func (h HealthResponse) Print() {
-	var st pterm.Color
-	switch h.Status {
-	case ClusterStatusGreen:
-		st = pterm.FgGreen
-	case ClusterStatusYellow:
-		st = pterm.FgYellow
-	case ClusterStatusRed:
-		st = pterm.FgRed
-	}
-
-	err := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromStringWithStyle(h.Status, pterm.NewStyle(st))).Render()
+func (h HealthResponse) Print(p printer.Printer) error {
+	s, err := p.BigTextWithColor(h.Status, h.Status)
 	if err != nil {
-		log.Fatalf("Error printing health output %v", err)
+		return fmt.Errorf("printing health output failed, %w", err)
 	}
-	pterm.DefaultBasicText.Println("Cluster Name", pterm.FgBlue.Sprint(h.ClusterName))
+	fmt.Println(s)
+	fmt.Printf("Cluster Name :%s\n", p.HighlightText(h.ClusterName))
+	return nil
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/esctl/esctl/pkg/config"
 	"github.com/esctl/esctl/pkg/es"
+	"github.com/esctl/esctl/pkg/printer"
 	"github.com/spf13/cobra"
 )
 
@@ -44,7 +45,10 @@ func newClusterHealthCmd(c *config.Cluster) *cobra.Command {
 				log.Fatalf("Error getting cluster health, reason=[%v]", err)
 			}
 
-			r.Print()
+			err = r.Print(&printer.ConsolePrinter{})
+			if err != nil {
+				log.Fatalf("Error getting cluster health, reason=[%v]", err)
+			}
 		},
 	}
 	return healthCmd
