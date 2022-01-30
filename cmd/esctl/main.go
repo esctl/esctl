@@ -21,6 +21,7 @@ import (
 	"github.com/esctl/esctl/internal/cmd/cat"
 	"github.com/esctl/esctl/internal/cmd/cluster"
 	confCmd "github.com/esctl/esctl/internal/cmd/config"
+	"github.com/esctl/esctl/internal/cmd/index"
 	"github.com/esctl/esctl/internal/cmd/root"
 	"github.com/esctl/esctl/pkg/config"
 	"github.com/esctl/esctl/pkg/fs"
@@ -68,4 +69,5 @@ func initSubCommands(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(confCmd.NewCmd(cfg))
 	rootCmd.AddCommand(cluster.NewCmd(cfg.GetCurrentCluster()))
 	rootCmd.AddCommand(cat.NewCmd(cfg.GetCurrentCluster()))
+	rootCmd.AddCommand(index.NewCmd(cfg.GetCurrentCluster()))
 }
