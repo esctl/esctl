@@ -1,6 +1,7 @@
 package es
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,10 @@ import (
 )
 
 type ListIndexResponse []string
+
+func (l ListIndexResponse) Print() {
+	fmt.Printf("%v\n", strings.Join(l, "\n"))
+}
 
 func (e *elasticSearchClient) ListIndex() (ListIndexResponse, error) {
 	req := esapi.IndicesGetRequest{
@@ -40,6 +45,29 @@ func (e *elasticSearchClient) ListIndex() (ListIndexResponse, error) {
 	return indices, nil
 }
 
-func (l ListIndexResponse) Print() {
-	fmt.Printf("%v\n", strings.Join(l, "\n"))
+func (e *elasticSearchClient) AllIndexSettings() (string, error) {
+	return e.IndexSettings([]string{"_all"})
+}
+
+func (e *elasticSearchClient) IndexSettings(indices []string) (string, error) {
+	req := esapi.IndicesGetRequest{
+		Index: indices,
+	}
+	res, err := req.Do(context.Background(), e.c)
+	if err != nil {
+		return "", fmt.Errorf("calling get indices failed, %w", err)
+	}
+
+	resData, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", fmt.Errorf("reading response failed, %w", err)
+	}
+
+	var prettyJSON bytes.Buffer
+	err = json.Indent(&prettyJSON, resData, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("indenting index settings failed, %w", err)
+	}
+
+	return prettyJSON.String(), nil
 }
