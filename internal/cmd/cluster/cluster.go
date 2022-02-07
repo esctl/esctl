@@ -47,7 +47,7 @@ func newClusterHealthCmd(c *config.Cluster) *cobra.Command {
 
 			err = r.Print(&printer.ConsolePrinter{})
 			if err != nil {
-				log.Fatalf("Error getting cluster health, reason=[%v]", err)
+				log.Fatalf("Error printing cluster health, reason=[%v]", err)
 			}
 		},
 	}
